@@ -54,7 +54,7 @@ Domain Reader::Read(const char* filename) const
 
             for (int k = 7; k >= 0 && columnBit < width; --k, ++columnBit) 
             {
-                points[reverseRow][columnBit] = !((rawFile[rawPos] >> k) & int(true));
+                points[reverseRow][columnBit] = !((rawFile[rawPos] >> k) & int(true)); //in a monochrome bitmap 1 is white and 0 is black
             }
         }
     }

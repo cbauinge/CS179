@@ -12,6 +12,7 @@ class Domain
     friend class DomainTest;
     
 public:
+////TODO: implement defult constructor
     Domain(std::vector<std::vector<bool> > points);
 
     const std::vector<std::vector<bool> >& GetPoints() const {return points_;}

@@ -14,4 +14,4 @@ before_install:
     - cd .. && git clone https://github.com/google/googletest.git && cd CS179
     - ls
     - eval "${MATRIX_EVAL}"
-script: mkdir build && cd build && cmake .. && make
+script: mkdir build && cd build && cmake .. && make test
