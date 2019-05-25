@@ -16,6 +16,7 @@ enable_testing()
 
 add_subdirectory(Domain)
 add_subdirectory(Reader)
+add_subdirectory(Solver)
 
 add_executable(CS179 main.cpp)
 target_link_libraries(CS179 Domain Reader)

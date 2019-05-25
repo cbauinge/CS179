@@ -11,7 +11,7 @@
 //double _y1(double x); second kind order 1
 //double _yn(int n,double x); second kind order n
 
-std::vector<double> Domain::Solve(const Domain& dom) const
+std::vector<double> Solver::Solve(const Domain& dom) const
 {
     std::vector<double> result;
     result.resize(dom.GetInterior().size()); //each interior point gets a result.

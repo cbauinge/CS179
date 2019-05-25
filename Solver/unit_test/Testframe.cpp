@@ -1,4 +1,5 @@
 #include "Solver.h"
+#include "gtest/gtest.h"
 
 ///NOTE: this construction is necessary to have access to private members of the tested class.
 
@@ -17,7 +18,7 @@ public:
 
 
 
-TEST{SolverTest, Constructor}
+TEST(SolverTest, Constructor)
 {
     SolverTest test;
 }
