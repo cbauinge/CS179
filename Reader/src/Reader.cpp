@@ -13,14 +13,14 @@ Domain Reader::Read(const char* filename) const
     std::ifstream f(filename, std::ios::binary);
 
     if (!f) 
-        throw "Invalid file given";
+        throw std::invalid_argument("Invalid file given");
 
     f.read((char*)&file_header, sizeof(BMPFileHeader));
 
     if (file_header.bitsPerPixel != 1) 
     {
         f.close();
-        throw "Invalid bitmap loaded, not monochrome";
+        throw std::invalid_argument("Invalid bitmap loaded, not monochrome");
     }
 
     int height = file_header.height;
@@ -31,7 +31,7 @@ Domain Reader::Read(const char* filename) const
     int fileSize = lineSize * height;
 
     std::vector<unsigned char> rawFile(fileSize);
-    points.resize(file_header.height, std::vector<bool>(width, 0));
+    points.resize(file_header.height, std::vector<bool>(width, false));
 
     // Skip to where the actual image data is
     f.seekg(file_header.offset);
@@ -52,8 +52,9 @@ Domain Reader::Read(const char* filename) const
         {
             int rawPos = (row * lineSize) + columnByte;
 
-            for (int k = 7; k >= 0 && columnBit < width; --k, ++columnBit) {
-                points[reverseRow][columnBit] = (rawFile[rawPos] >> k) & 1;
+            for (int k = 7; k >= 0 && columnBit < width; --k, ++columnBit) 
+            {
+                points[reverseRow][columnBit] = !((rawFile[rawPos] >> k) & int(true));
             }
         }
     }

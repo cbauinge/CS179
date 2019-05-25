@@ -16,9 +16,6 @@ public:
 
 
 private:
-    uint32_t make_stride_aligned(uint32_t align_stride);
-
-
     uint32_t row_stride{ 0 };
 
     #pragma pack(1)

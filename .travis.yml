@@ -11,10 +11,7 @@ language: c++
 compiler: g++
 before_install: 
     - sudo apt-get update
-    - sudo apt-get install -y libgtest-dev
-    - git clone https://github.com/google/googletest.git && cd googletest
-    - mkdir build && cd build
-    - cmake .. && sudo make install
-    - cd ../..
+    - git clone https://github.com/google/googletest.git
+    - ls
     - eval "${MATRIX_EVAL}"
 script: mkdir build && cd build && cmake .. && make

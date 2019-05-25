@@ -10,8 +10,9 @@ set(GTEST_PATH ${CMAKE_SOURCE_DIR}/../googletest)
 add_subdirectory(${GTEST_PATH} ${CMAKE_BINARY_DIR}/gtest)
 
 include_directories(SYSTEM ${GTEST_PATH}/googletest/include)
-
 include_directories(${CMAKE_SOURCE_DIR})
+
+enable_testing()
 
 add_subdirectory(Domain)
 add_subdirectory(Reader)
