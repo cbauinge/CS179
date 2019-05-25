@@ -7,11 +7,12 @@
 #include <string>
 
 
-#ifndef DATA_PATH
+#ifndef DATA_PATH //this should be defined in the CMakeLists.txt in the same folder as this file.
     std::cout << "no data path defined" << std::endl;
     #define DATA_PATH "."
 #endif
 
+//weird construct necessary to get the value in a maro into a string
 #define STR(s) STRTMP(s)
 #define STRTMP(s) #s
 

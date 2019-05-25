@@ -11,7 +11,7 @@ language: c++
 compiler: g++
 before_install: 
     - sudo apt-get update
-    - git clone https://github.com/google/googletest.git
+    - cd .. && git clone https://github.com/google/googletest.git && cd CS179
     - ls
     - eval "${MATRIX_EVAL}"
 script: mkdir build && cd build && cmake .. && make
