@@ -35,4 +35,4 @@ private:
 };
 
 
-#endif /* REAER_H */
+#endif /* READER_H */

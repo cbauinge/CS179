@@ -1,6 +1,13 @@
 #include "Domain.h"
 #include "Vec2D.h"
+#include "BoundaryDataGenerator.h"
 #include "gtest/gtest.h"
+#include <cstdlib>
+
+double testfunction(double a, double b)
+{
+    return 1.0;
+}
 
 
 class DomainTest : public ::testing::Test
@@ -27,6 +34,19 @@ class Vec2DTest : public ::testing::Test
     virtual void TestBody(){}
 
     Vec2D vec_;
+};
+
+
+class BoundaryDataGeneratorTest : public ::testing::Test
+{
+public:
+    BoundaryDataGeneratorTest(double (*func)(double, double)) : generator_(func) {}
+
+    virtual void SetUp(){}
+    virtual void TearDown(){}
+    virtual void TestBody(){}
+
+    BoundaryDataGenerator generator_;
 };
 
 
@@ -83,4 +103,43 @@ TEST(DomainTest, Constructor)
     DomainTest testdomain{v};
 
     testdomain.domain_.Dump(std::cout);
+}
+
+TEST(BCDataTest, GenerateSize)
+{
+    std::vector<std::vector<bool> > v;
+    std::vector<bool> r1 = {true, false, false};
+    v.push_back(r1);
+    std::vector<bool> r2 = {false, true, false};
+    v.push_back(r2);
+    v.push_back(r1);
+
+    DomainTest testdomain{v};
+
+    BoundaryDataGeneratorTest testgenerator(testfunction);
+    std::vector<double> bc = testgenerator.generator_.Generate(testdomain.domain_);
+
+    srand (time(NULL));
+    EXPECT_EQ(3, bc.size());
+}
+
+
+
+TEST(BCDataTest, GenerateValue)
+{
+    std::vector<std::vector<bool> > v;
+    std::vector<bool> r1 = {true, false, false};
+    v.push_back(r1);
+    std::vector<bool> r2 = {false, true, false};
+    v.push_back(r2);
+    v.push_back(r1);
+
+    DomainTest testdomain{v};
+
+    BoundaryDataGeneratorTest testgenerator(testfunction);
+    std::vector<double> bc = testgenerator.generator_.Generate(testdomain.domain_);
+
+    srand (time(NULL));
+    EXPECT_EQ(1, bc[rand() % bc.size()]);
+    EXPECT_EQ(3, bc.size());
 }

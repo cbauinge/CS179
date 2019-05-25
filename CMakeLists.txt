@@ -11,12 +11,18 @@ add_subdirectory(${GTEST_PATH} ${CMAKE_BINARY_DIR}/gtest)
 
 include_directories(SYSTEM ${GTEST_PATH}/googletest/include)
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/Domain/include)
+include_directories(${CMAKE_SOURCE_DIR}/Reader/include)
+include_directories(${CMAKE_SOURCE_DIR}/Writer/include)
+include_directories(${CMAKE_SOURCE_DIR}/Solver/include)
+
 
 enable_testing()
 
 add_subdirectory(Domain)
 add_subdirectory(Reader)
 add_subdirectory(Solver)
+add_subdirectory(Writer)
 
 add_executable(CS179 main.cpp)
-target_link_libraries(CS179 Domain Reader)
+target_link_libraries(CS179 Domain Reader Solver Writer)

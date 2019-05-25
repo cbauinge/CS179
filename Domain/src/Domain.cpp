@@ -9,6 +9,8 @@ Domain::Domain(std::vector<std::vector<bool> > points) :
     boundary_(GenerateBoundary()),
     normals_(GenerateNormals())
 {
+    h_ = 1.0/(points.size()-1.0); //i.e. point at position 0 corresponds to x = 0*h point at last position corresponds to 1 = (size-1)*h
+    //ATTENTION: in y direction the max and minimum is defined by points[.].size()*h. It does not need to coincide with 1
 }
 
 std::vector<std::pair<int, int> > Domain::GenerateInterior() const

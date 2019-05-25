@@ -7,6 +7,8 @@
 
 class Solver
 {
+    friend class SolverTest;
+
 public:
 
     ///Solve routine which takes a domain and computes the solution of the Hemholtz equation for all interior 
