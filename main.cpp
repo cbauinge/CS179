@@ -9,6 +9,7 @@
 #include "Reader.h"
 #include "Writer.h"
 #include "Solver.h"
+#include "SolverEigen.h"
 
 double bcdata(double x, double y)
 {
@@ -36,14 +37,15 @@ int main(int argc, char * argv [])
         std::vector<double> bc = bc_generator.Generate(dom);
 
         //Solver the equation with the given wave number and boundary condition
-        Solver solver;
-        solver.SetWaveNumber(k);
-        solver.SetBoundaryCondition(bc);
-        std::vector<double> result = solver.Solve(dom);
+        Solver* solver = new SolverEigen;
+        solver->SetWaveNumber(k);
+        solver->SetBoundaryCondition(bc);
+        std::vector<double> result = solver->Solve(dom);
+        delete solver;
 
         //Write the result to the harddrive
         Writer writer;
-        writer.Write("result.csv", dom, result);
+        writer.Write("result.csv", dom, result, bc);
     }
     catch (std::exception& e)
     {

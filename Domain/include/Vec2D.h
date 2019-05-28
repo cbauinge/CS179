@@ -21,6 +21,7 @@ public:
 
 
     static double Norm(const Vec2D& v);
+    static double Dot(const Vec2D& v1, const Vec2D& v2); 
     static Vec2D Normalize(const Vec2D& v);
 
     

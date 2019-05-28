@@ -49,6 +49,20 @@ public:
     BoundaryDataGenerator generator_;
 };
 
+class BoundaryTest : public ::testing::Test
+{
+public:
+    BoundaryTest(std::vector<std::vector<bool> > points, double h) : boundary_(points, h) {}
+
+    bool IsBoundary(int i, int j, std::vector<std::vector<bool> > points) {return boundary_.IsBoundary(i, j, points);}
+
+    virtual void SetUp(){}
+    virtual void TearDown(){}
+    virtual void TestBody(){}
+
+    Boundary boundary_;
+};
+
 
 TEST(Vec2DTest, Constructor)
 {
@@ -94,15 +108,46 @@ TEST(Vec2DTest, Normalize)
 TEST(DomainTest, Constructor)
 {
     std::vector<std::vector<bool> > v;
+    std::vector<bool> r1 = {false, true, true, true, false};
+    std::vector<bool> r2 = {false, false, true, false, false};
+    v.push_back(std::vector<bool>(5, false));
+    v.push_back(r2);
+    v.push_back(r1);
+    v.push_back(r2);
+    v.push_back(std::vector<bool>(5, false));
+
+    DomainTest testdomain{v};
+
+    //testdomain.domain_.Dump(std::cout);
+}
+
+TEST(BoundaryTest, constructor)
+{
+    std::vector<std::vector<bool> > v;
+    std::vector<bool> r1 = {false, true, true, true, false};
+    std::vector<bool> r2 = {false, false, true, true, false};
+    v.push_back(std::vector<bool>(5, false));
+    v.push_back(r2);
+    v.push_back(r1);
+    v.push_back(r2);
+    v.push_back(std::vector<bool>(5, false));
+
+    BoundaryTest test(v, 1.0/5.0);
+    //test.boundary_.Dump(std::cout);
+}
+
+TEST(BoundaryTest, IsBoundary)
+{
+    std::vector<std::vector<bool> > v;
     std::vector<bool> r1 = {true, false, false};
     v.push_back(r1);
     std::vector<bool> r2 = {false, true, false};
     v.push_back(r2);
     v.push_back(r1);
 
-    DomainTest testdomain{v};
+    BoundaryTest test(v, 1.0/3.0);
 
-    testdomain.domain_.Dump(std::cout);
+    EXPECT_EQ(true, test.IsBoundary(1, 1, v));
 }
 
 TEST(BCDataTest, GenerateSize)
@@ -143,3 +188,6 @@ TEST(BCDataTest, GenerateValue)
     EXPECT_EQ(1, bc[rand() % bc.size()]);
     EXPECT_EQ(3, bc.size());
 }
+
+
+

@@ -6,12 +6,12 @@
 Domain::Domain(std::vector<std::vector<bool> > points) :
     points_(points), 
     interior_(GenerateInterior()),
-    boundary_(GenerateBoundary()),
-    normals_(GenerateNormals())
+    interior_without_boundary_(GenerateInteriorWOBoundary()),
+    h_(1.0/(points.size()-1.0)), //we scale x direction to 1. from that and the number of points we get h
+    boundary_(points, h_)
 {
-    h_ = 1.0/(points.size()-1.0); //i.e. point at position 0 corresponds to x = 0*h point at last position corresponds to 1 = (size-1)*h
-    //ATTENTION: in y direction the max and minimum is defined by points[.].size()*h. It does not need to coincide with 1
 }
+
 
 std::vector<std::pair<int, int> > Domain::GenerateInterior() const
 {
@@ -30,65 +30,23 @@ std::vector<std::pair<int, int> > Domain::GenerateInterior() const
     return result;
 }
 
-std::vector<int> Domain::GenerateBoundary() const
+
+std::vector<std::pair<int, int> > Domain::GenerateInteriorWOBoundary() const
 {
-    std::vector<int> boundaries;
-    for (int i = 0; i < interior_.size(); i++)
+    std::vector<std::pair< int, int> > result; 
+
+    for (int i = 0; i < points_.size(); i++)
     {
-        //ATTENTION: i am now looking only at the neighbours in x and y direction,
-        //not the diagonal ones to determine if something is a boundary element
-        std::pair<int, int> coordinates = interior_[i];
-        bool is_boundary = false;
-        if (coordinates.first != 0 && !points_[coordinates.first-1][coordinates.second])
-            is_boundary = true;
-        
-        if (coordinates.first < points_.size() -1 && !points_[coordinates.first+1][coordinates.second])
-            is_boundary = true;
-
-        if (coordinates.second != 0 && !points_[coordinates.first][coordinates.second-1])
-            is_boundary = true;
-        
-        if (coordinates.second < points_[coordinates.first].size() -1 && !points_[coordinates.first][coordinates.second+1])
-            is_boundary = true;
-
-        if (is_boundary)
-            boundaries.push_back(i);
+        for (int j = 0; j < points_[i].size(); j++)
+        {
+            if (points_[i][j] && !boundary_.IsBoundary(i, j, points_))
+                result.push_back(std::make_pair(i, j));
+        }
     }
+    std::sort(result.begin(), result.end()); //interior is sorted first by x then by y coordinate
 
-    return boundaries;
+    return result;
 }
-
-std::vector<Vec2D> Domain::GenerateNormals() const
-{
-    std::vector<Vec2D> normals;
-    normals.resize(boundary_.size());
-
-    for (int i = 0; i < boundary_.size(); i++)
-    {
-        std::pair<int, int> coordinates = interior_[boundary_[i]];
-        Vec2D n(0, 0);
-        
-        if (coordinates.first != 0 && !points_[coordinates.first-1][coordinates.second])
-            n += Vec2D(-1, 0);
-        
-        if (coordinates.first < points_.size() -1 && !points_[coordinates.first+1][coordinates.second])
-            n += Vec2D(1, 0);
-
-        if (coordinates.second != 0 && !points_[coordinates.first][coordinates.second-1])
-            n += Vec2D(0, -1);
-        
-        if (coordinates.second < points_[coordinates.first].size() -1 && !points_[coordinates.first][coordinates.second+1])
-            n += Vec2D(0, 1);
-
-        n = Vec2D::Normalize(n);
-
-        normals[i] = n;
-    }
-
-    return normals;
-
-}
-
 
 
 std::ostream& Domain::Dump(std::ostream& ofs) const
@@ -116,12 +74,11 @@ std::ostream& Domain::Dump(std::ostream& ofs) const
     }
 
     ofs << std::endl;
-    ofs << "Boundary and Normals" << std::endl;
+    ofs << "Boundary positions" << std::endl;
 
     for (int i = 0; i < boundary_.size(); i++)
     {
-        ofs << boundary_[i] << "\t";
-        normals_[i].Dump(ofs);
+        ofs << boundary_[i].i << ", " << boundary_[i].j << std::endl;
     }
     
     return ofs;    

@@ -47,7 +47,12 @@ std::ostream& Vec2D::Dump(std::ostream& ofs) const
 
 double Vec2D::Norm(const Vec2D& v)
 {
-    return std::sqrt(v.x()*v.x() + v.y()*v.y());
+    return std::sqrt(Dot(v, v));
+}
+
+double Vec2D::Dot(const Vec2D& v1, const Vec2D& v2)
+{
+    return v1.x()*v2.x() + v1.y()*v2.y();
 }
 
 
