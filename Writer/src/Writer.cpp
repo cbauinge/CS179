@@ -23,7 +23,7 @@ void Writer::Write(const char* filename, const Domain& dom, const std::vector<do
         int coordinatex = dom.GetBoundary().GetOrderedPoint(i).i;
         int coordinatey = dom.GetBoundary().GetOrderedPoint(i).j;
 
-        output[coordinates.first][coordinates.second] = bc[i];
+        output[coordinatex][coordinatey] = bc[i];
     }
 
     std::ofstream ofs(filename, std::ios::out);
