@@ -24,10 +24,11 @@ TEST(WriterTest, Test1)
     v.push_back(r1);
 
     Domain dom{v};
-    std::vector<double> result{1, 2, 3};
+    std::vector<double> result;
+    std::vector<double> bc{1, 2, 3};
 
     EXPECT_EQ(3, result.size());
 
     WriterTest wtest;
-    wtest.writer_.Write("testoutput.csv", dom, result);
+    wtest.writer_.Write("testoutput.csv", dom, result, bc);
 }
