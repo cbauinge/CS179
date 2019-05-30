@@ -1,0 +1,98 @@
+%%%%%%%%%%%%%%%MOTIVATION%%%%%%%%%%%%%%%%%%
+
+The goal of this project is to implement a solver of the Helmholtz equation
+with Dirichlet boundayr conditions based on boundary intgral equations in 2D. 
+The domain is given by a bitmap.
+In my case this bitmap is just a textfile with 0's and 1's, where the 1's
+denote the inside of the domain.
+
+The final goal is to implement performance critical functions on the GPU
+and compare it to the CPU runtime. Focus lies here on the numerical solver
+part, not on the IO.
+
+To check the performance of my GPU implementation, I compare it to a
+paralllelization using openACC to make sure my GPU implementation is at least
+as fast as that (i.e. to avoid comparing 'bad' GPU code)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%OVERVIEW OF PROGRAM FLO AND ALGORITHMS%%%%%%%%%%%%%%%%
+
+There are several steps in this program
+-Read the input file (Reader.h)
+-Generate a domain, specifically the boundary, from it. (Domain.h)
+-Use this information to generate the coefficient matrix and the RHS of There
+    discretized integral equation. Here I use techniqeus presented in Kress
+    'Linear Integral Equations', section 12.3 (Solver.h)
+-Solve the system using Eigen library for the CPU demo. (SolverEigen.h)
+-Write the result to the harddrive in CSV format.(Writer.h)
+-Visualize the result using e.g. Matlab. (Visualization.m)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%INSTALLATION%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+*Prerequisites:
+I need the Eigen library and the googletest library at the same level as
+the repository. i.e.
+
+-eigen
+-googletest
+-MyProjectFolder
+
+Eigen can be downloaded using
+hg clone https://bitbucket.org/eigen/eigen/
+
+googletest can be downloaded using
+git clone https://github.com/google/googletest.git
+
+
+The standard I use is C++17 (since I require bessel functions from cmath which was only introduced in the C++17 standard)
+
+The compiler I used is g++7 under Ubuntu 18.04.
+
+
+*Building
+Go to the project to the project folder. Make a directory build. Go into the new build folder and run cmake from there. 
+
+mkdir build
+cd build
+cmake ..
+make
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RUNNING THE CODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Run either the default with 
+
+./CS179
+
+It takes a default domain (which I know works) and runs the solver on it.
+
+
+Otherwise:
+
+./CS179 <Path to input file> <wave_number>
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%INPUT FILE FORMAT%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The input file is a text file with 0 and 1's in a matrix format. In the first line,
+there should be rows an columns of the domain. The boundary of the file need to be 0.
+The domain needs to be connected and with sufficient width everywhere. In addition, 
+the boundayr needs to be kinda simple, otherwise my algorithm to parametrize the boundary doesnt work. It will tell you when it can't find anything useful.
+
+Example file:
+5 5
+0 0 0 0 0
+0 0 1 0 0
+0 1 1 1 0
+0 0 1 0 0
+0 0 0 0 0
+
+I wrote a Matlab script which generates the 0s and 1s. The rows and colums need to be
+added manually.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Setting the boundary condition%%%%%%%%%%%%%%%%%%%
+In main.cpp, there is a function 'bcdata'. This function defines the boundary condition.
+
+
+
