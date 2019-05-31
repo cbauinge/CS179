@@ -11,6 +11,10 @@
 #include "Solver.h"
 #include "SolverEigen.h"
 
+#ifdef USE_CUDA
+    #include "SolverGPU.h"
+#endif /*USE_CUDA*/
+
 double bcdata(double x, double y)
 {
     return 10*x -5;
@@ -38,7 +42,12 @@ int main(int argc, char * argv [])
         std::vector<double> bc = bc_generator.Generate(dom);
 
         //Solver the equation with the given wave number and boundary condition
-        Solver* solver = new SolverEigen;
+        #ifdef USE_CUDA
+            Solver* solver = new SolverGPU;
+        #else
+            Solver* solver = new SolverEigen;
+        #endif
+        
         solver->SetWaveNumber(k);
         solver->SetBoundaryCondition(bc);
         std::vector<double> result = solver->Solve(dom);
