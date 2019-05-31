@@ -4,6 +4,9 @@
 #include "Domain.h"
 #include <vector>
 
+
+/// @brief Class that generates the boundary condition for each point on the boundary
+/// according to the given function.
 class BoundaryDataGenerator
 {
     friend class BoundaryDataGeneratorTest;
