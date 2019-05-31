@@ -1,6 +1,7 @@
 #include "Domain.h"
 
 #include<algorithm>
+#include <iostream>
 
 
 Domain::Domain(std::vector<std::vector<bool> > points) :
@@ -10,6 +11,7 @@ Domain::Domain(std::vector<std::vector<bool> > points) :
     h_(1.0/(points.size()-1.0)), //we scale x direction to 1. from that and the number of points we get h
     boundary_(points, h_)
 {
+    //Dump(std::cout);
 }
 
 
@@ -65,21 +67,21 @@ std::ostream& Domain::Dump(std::ostream& ofs) const
         ofs << std::endl;
     }
 
-    ofs << std::endl;
-    ofs << "Interior" << std::endl;
+    // ofs << std::endl;
+    // ofs << "Interior" << std::endl;
 
-    for (int i = 0; i < interior_.size(); i++)
-    {
-        ofs << interior_[i].first << ", " << interior_[i].second << std::endl;
-    }
+    // for (int i = 0; i < interior_.size(); i++)
+    // {
+    //     ofs << interior_[i].first << ", " << interior_[i].second << std::endl;
+    // }
 
-    ofs << std::endl;
-    ofs << "Boundary positions" << std::endl;
+    // ofs << std::endl;
+    // ofs << "Boundary positions" << std::endl;
 
-    for (int i = 0; i < boundary_.size(); i++)
-    {
-        ofs << boundary_[i].i << ", " << boundary_[i].j << std::endl;
-    }
+    // for (int i = 0; i < boundary_.size(); i++)
+    // {
+    //     ofs << boundary_[i].i << ", " << boundary_[i].j << std::endl;
+    // }
     
     return ofs;    
 }

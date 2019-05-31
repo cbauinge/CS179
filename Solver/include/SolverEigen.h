@@ -25,6 +25,7 @@ protected:
     Matrix SetupEval(const Domain& dom) const;
 
     Matrix SetupR(const Domain& dom) const;
+    double ComputeR(double tj, double t, int n) const;
     complex K(int i, int j, const Domain& dom) const;
     complex K1(int i, int j, const Domain& dom) const;
     complex K2(int i, int j, const Domain& dom) const;

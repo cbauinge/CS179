@@ -14,7 +14,7 @@ std::vector<double> BoundaryDataGenerator::Generate(const Domain& dom)
 
     for (int i = 0; i < bc.size(); i++)
     {
-        bc[i] = bcfunc(dom.GetBoundary()[i].x, dom.GetBoundary()[i].y);
+        bc[i] = bcfunc(dom.GetBoundary().GetOrderedPoint(i).x, dom.GetBoundary().GetOrderedPoint(i).y);
     }
 
     return bc;

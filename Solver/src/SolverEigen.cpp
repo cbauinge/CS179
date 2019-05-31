@@ -1,6 +1,7 @@
 #include "SolverEigen.h"
 
 #include <cmath>
+#include <iostream>
 
 
 using namespace std::complex_literals;
@@ -8,17 +9,22 @@ using namespace std::complex_literals;
 std::vector<double> SolverEigen::Solve(const Domain& dom) const
 {
     Matrix A = SetupA(dom);
+    Matrix I = Matrix::Identity(A.rows(), A.cols());
+    //std::cout << "A = " << A << std::endl;
     Vector b = SetupRhs(dom);
 
     //solve for density
-    Eigen::ColPivHouseholderQR<Matrix> dec(Matrix::Identity(A.rows(), A.cols()) - A);
+    Eigen::ColPivHouseholderQR<Matrix> dec(I - A);
     Vector x = dec.solve(b);
+    //std::cout << std::endl << "x = " << x << std::endl;
 
     //now, evaluate the result on all interior points. For that, setup the evaluation matrix
-    Matrix Eval(dom.GetInterior().size() - dom.GetBoundary().size(), A.cols());
+    Matrix Eval = SetupEval(dom);
+    //std::cout << "Eval = " << Eval << std::endl;
 
     //Evaluate the result in the inteiror (wo bounadary)
     Vector evaluation = Eval*x;
+    //std::cout << "FInal inner result = " << evaluation << std::endl;
     
     std::vector<double> result;
     result.resize(evaluation.size());
@@ -35,15 +41,15 @@ Matrix SolverEigen::SetupA(const Domain& dom) const
 {
     int n = dom.GetBoundary().size();
     Matrix A(n, n);
-    Matrix R = SetupR(dom);
-    double dt = 2.0*M_PI/dom.GetBoundary().size();
+    double dt = 2.0*M_PI/n;
+    int fn = floor(n/2);
 
 
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            A(i, j) = R(i, j)*K1(i, j, dom) + dt*K2(i, j, dom);
+            A(i, j) = ComputeR(dt*j, dt*i, fn)*K1(i, j, dom) + dt*K2(i, j, dom);
         }
     }
 
@@ -78,6 +84,8 @@ Matrix SolverEigen::SetupEval(const Domain& dom) const
             Eval(i, j) = Lxy(coordinates.first*dom.GetH(), coordinates.second*dom.GetH(), j, dom);
         }
     }
+
+    return Eval;
 }
     
 
@@ -106,6 +114,17 @@ Matrix SolverEigen::SetupR(const Domain& dom) const
     return R;    
 }
 
+double SolverEigen::ComputeR(double tj, double t, int n) const
+{
+    double sum = 0.0;
+
+    for (int m = 1; m < n; m++)
+    {
+        sum += 1.0/m * cos(m*(t - tj)) + 1/(2.0*n)*cos(n*(t - tj)); 
+    }
+    sum /= -n;
+}
+
 
 complex SolverEigen::K(int i, int j, const Domain& dom) const
 {
@@ -120,7 +139,7 @@ complex SolverEigen::K(int i, int j, const Domain& dom) const
         double dy = D.y();
         double ddx = dom.GetBoundary().GetOrderedPoint(i).DD.x();
         double ddy = dom.GetBoundary().GetOrderedPoint(i).DD.y();
-        val = 1.0/(2.0*M_PI*Vec2D::Dot(D, D))*(dx*ddy - dy*ddx);
+        val = -1.0/(2.0*M_PI*Vec2D::Dot(D, D))*(dx*ddy - dy*ddx);
     }
     else
     {
@@ -128,9 +147,7 @@ complex SolverEigen::K(int i, int j, const Domain& dom) const
             dom.GetBoundary().GetOrderedPoint(j).y - dom.GetBoundary().GetOrderedPoint(i).y);
         double normxji = Vec2D::Norm(xji);
         Vec2D D = dom.GetBoundary().GetOrderedPoint(j).D;
-        double dx = D.x();
-        double dy = D.y();
-        val = complex(1i*k_/(2.0*normxji)*(dy*xji.x() - dx*xji.y()))*Hankel(1, k_*normxji);
+        val = -complex(1i*k_/(2.0*normxji)*(D.y()*xji.x() - D.x()*xji.y()))*Hankel(1, k_*normxji);
     }
 
     return val;
@@ -139,20 +156,24 @@ complex SolverEigen::K(int i, int j, const Domain& dom) const
 
 complex SolverEigen::K1(int i, int j, const Domain& dom) const
 {
-    Vec2D xij(dom.GetBoundary().GetOrderedPoint(i).x - dom.GetBoundary().GetOrderedPoint(j).x,
-            dom.GetBoundary().GetOrderedPoint(i).y - dom.GetBoundary().GetOrderedPoint(j).y);
-    double normxij = Vec2D::Norm(xij);
-    Vec2D D = dom.GetBoundary().GetOrderedPoint(j).D;
-    double dx = D.x();
-    double dy = D.y();
-    return k_/(2.0*M_PI*normxij)*(dy*xij.x() - dx*xij.y())*std::cyl_bessel_j(1, k_*normxij);
+    complex val = 0.0;
+
+    if (abs(i-j) > 0.5)
+    {
+        Vec2D xij(dom.GetBoundary().GetOrderedPoint(i).x - dom.GetBoundary().GetOrderedPoint(j).x,
+                dom.GetBoundary().GetOrderedPoint(i).y - dom.GetBoundary().GetOrderedPoint(j).y);
+        double normxij = Vec2D::Norm(xij);
+        Vec2D D = dom.GetBoundary().GetOrderedPoint(j).D;
+        val =  k_/(2.0*M_PI*normxij)*(D.y()*xij.x() - D.x()*xij.y())*std::cyl_bessel_j(1, k_*normxij);
+    }
+    return val;
 }
 
 
 complex SolverEigen::K2(int i, int j, const Domain& dom) const
 {
     complex val = 0.0;
-    if (abs(i-j) < 0.5)
+    if (abs(i-j) > 0.5)
     {
         double dt = 2.0*M_PI/dom.GetBoundary().size();
         double tmp = sin((i*dt - j*dt)/2.0);
@@ -171,8 +192,8 @@ complex SolverEigen::Lxy(double x, double y, int i, const Domain& dom) const
 {
     Vec2D dist(x - dom.GetBoundary().GetOrderedPoint(i).x, y - dom.GetBoundary().GetOrderedPoint(i).y);
     double normdist = Vec2D::Norm(dist);
-    Vec2D normal = dom.GetBoundary().GetOrderedPoint(i).normal;
+    Vec2D D = dom.GetBoundary().GetOrderedPoint(i).D;
     double dt = 2.0*M_PI/dom.GetBoundary().size();
-    complex val = complex(1i * k_/4.0*dt*(Vec2D::Dot(dist, normal)/normdist))*Hankel(1, k_*normdist);
+    complex val = complex(1i * k_ * dt /(4.0*normdist)*(D.y()*dist.x() - D.x()*dist.y()))*Hankel(1, k_*normdist);
     return val;
 }

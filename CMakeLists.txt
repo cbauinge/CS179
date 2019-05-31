@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0)
-project(CS179 CXX)
+cmake_minimum_required(VERSION 3.10)
+project(CS179 CXX CUDA)
 
 #Set Standard
 set (CMAKE_CXX_STANDARD 17)

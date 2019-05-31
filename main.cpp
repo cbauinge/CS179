@@ -13,24 +13,25 @@
 
 double bcdata(double x, double y)
 {
-    return x;
+    return 10*x -5;
 }
 
 int main(int argc, char * argv [])
 {
-    if (argc != 3) {
-        std::cout << "Usage: ./CS179 <path-to-inputfile> <wave number>" << std::endl;
+    if (argc != 3 && argc != 1) 
+    {
+        std::cout << "Usage: ./CS179 for default OR ./CS179 <path-to-inputfile> <wave number>" << std::endl;
         return 1;
     }
 
     try
     {
         //set the wave number
-        double k = std::stod(argv[2]);
+        double k = argc == 3 ? std::stod(argv[2]) : 25;
 
         //Get the domain from the file
         Reader r;
-        Domain dom = r.Read(argv[1]);
+        Domain dom = argc == 3 ? r.Read(argv[1]) : r.Read("/home/cbauinge/Documents/CS179/Testdata/test.txt");
 
         //Generate bc according to the above function
         BoundaryDataGenerator bc_generator(bcdata);

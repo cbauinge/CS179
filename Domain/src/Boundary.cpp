@@ -227,7 +227,8 @@ void Boundary::GenerateOrdering(const std::vector<std::vector<bool> >& points)
         {
             for (int jj = points_[order_.back()].j-1; jj <= points_[order_.back()].j+1; jj++)
             {
-                if ((ii == points_[order_.back()].i && jj == points_[order_.back()].j))//skip the own point
+                if ((ii == points_[order_.back()].i && jj == points_[order_.back()].j) || //skip the own point
+                    !(ii >= 0 && ii < points.size() && jj >= 0 && jj < points[ii].size()))
                     continue;
 
                 Point tmp;
@@ -262,6 +263,7 @@ void Boundary::GenerateOrdering(const std::vector<std::vector<bool> >& points)
 
         auto iter = std::lower_bound(boundary_copy.begin(), boundary_copy.end(), points_[possibilities[iter_choice]]);
         order_.push_back(possibilities[iter_choice]);
+        //std::cout << "Node = " << possibilities[iter_choice] << " appended" << std::endl;
         boundary_copy.erase(iter);
     }
 

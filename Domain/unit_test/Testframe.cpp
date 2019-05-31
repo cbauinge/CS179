@@ -118,6 +118,8 @@ TEST(DomainTest, Constructor)
 
     DomainTest testdomain{v};
 
+    EXPECT_EQ(1.0/4.0, testdomain.domain_.GetH());
+
     //testdomain.domain_.Dump(std::cout);
 }
 
@@ -132,7 +134,7 @@ TEST(BoundaryTest, constructor)
     v.push_back(r2);
     v.push_back(std::vector<bool>(5, false));
 
-    BoundaryTest test(v, 1.0/5.0);
+    BoundaryTest test(v, 1.0/4.0);
     //test.boundary_.Dump(std::cout);
 }
 
@@ -145,7 +147,7 @@ TEST(BoundaryTest, IsBoundary)
     v.push_back(r2);
     v.push_back(r1);
 
-    BoundaryTest test(v, 1.0/3.0);
+    BoundaryTest test(v, 1.0/2.0);
 
     EXPECT_EQ(true, test.IsBoundary(1, 1, v));
 }
