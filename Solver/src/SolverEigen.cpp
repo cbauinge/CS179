@@ -89,30 +89,30 @@ Matrix SolverEigen::SetupEval(const Domain& dom) const
 }
     
 
-Matrix SolverEigen::SetupR(const Domain& dom) const
-{
-    int n = dom.GetBoundary().size();
-    Matrix R(n, n);
+// Matrix SolverEigen::SetupR(const Domain& dom) const
+// {
+//     int n = dom.GetBoundary().size();
+//     Matrix R(n, n);
 
-    int fn = std::floor(n/2);
+//     int fn = std::floor(n/2);
 
-    //double dt = 2*PI/n;
+//     //double dt = 2*PI/n;
 
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            R(i, j) = 0.0;
-            for (int k = 1; k < fn; k++)
-            {
-                R(i, j) += 1.0/k*cos(k*i*M_PI/double(fn)) + std::pow(-1.0, i)/(2.0*fn);
-            }
-            R(i, j) /= -fn;
-        }
-    }
+//     for (int i = 0; i < n; i++)
+//     {
+//         for (int j = 0; j < n; j++)
+//         {
+//             R(i, j) = 0.0;
+//             for (int k = 1; k < fn; k++)
+//             {
+//                 R(i, j) += 1.0/k*cos(k*i*M_PI/double(fn)) + std::pow(-1.0, i)/(2.0*fn);
+//             }
+//             R(i, j) /= -fn;
+//         }
+//     }
 
-    return R;    
-}
+//     return R;    
+// }
 
 double SolverEigen::ComputeR(double tj, double t, int n) const
 {
