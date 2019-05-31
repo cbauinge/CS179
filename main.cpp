@@ -28,7 +28,7 @@ int main(int argc, char * argv [])
         //set the wave number
         double k = std::stod(argv[2]);
 
-        //Get the number from the bmp
+        //Get the domain from the file
         Reader r;
         Domain dom = r.Read(argv[1]);
 
