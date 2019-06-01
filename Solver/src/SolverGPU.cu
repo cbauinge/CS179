@@ -9,7 +9,7 @@ __device__ double ComputeR(double tj, double t, int n)
 
     for (int m = 1; m < n; m++)
     {
-        sum += 1.0/m * cos(m*(t - tj)) + 1/(2.0*n)*cos(n*(t - tj)); 
+        sum += 1.0/m * cos(m*(t - tj)) + 1.0/(2.0*n)*cos(n*(t - tj)); 
     }
     sum /= -n;
 
@@ -89,8 +89,28 @@ __device__ cuDoubleComplex hankel11(double x)
 }
 
 
-__global__ void SetupAKernel(cuDoubleComplex* A, int n, double dt)
+__global__ void SetupAKernel(cuDoubleComplex* A, 
+    double* posx,
+    double* posy,
+    double* dx,
+    double* dy,
+    double* ddx,
+    double* ddy,
+    int n, double dt, double k)
 {
+    uint thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (thread_index >= n*n)
+        return;
+
+    int i = thread_index / n;
+    int j = thread_index % n;
+
+    cuDoubleComplex r = make_cuDoubleComplex(ComputeR(dt*j, dt*i, n/2), 0.0);
+    cuDoubleComplex k1 = K1(posx[i], posy[i], posx[j], posy[j], dx[i], dy[i], dx[j], dy[j], ddx[i], ddy[i], k);
+    cuDoubleComplex k2 = K2(posx[i], posy[i], posx[j], posy[j], dx[i], dy[i], dx[j], dy[j], ddx[i], ddy[i], dt*i, dt*j, k);
+
+    A[thread_index] = cuCadd(cuCmul(r, k1), cuCmul(make_cuDoubleComplex(dt, 0.0),k2));
     //int fn = floor(n/2);
 
     // for (int i = 0; i < n; i++)
@@ -108,14 +128,26 @@ __global__ void SetupRhsKernel(cuDoubleComplex* rhs)
 }
 
 
-__global__ void SetupEvalKernel(cuDoubleComplex* Eval)
+__global__ void SetupEvalKernel(cuDoubleComplex* Eval,
+    double* posx_int,
+    double* posy_int,
+    double* posx_bound,
+    double* posy_bound,
+    double* dx,
+    double* dy,
+    int m, 
+    int n,
+    double k,
+    double dt)
 {
-    // for (int i = 0; i < Eval.rows(); i++)
-    // {
-    //     for (int j = 0; j < Eval.cols(); j++)
-    //     {   
-    //         std::pair<int, int> coordinates = dom.GetInteriorWOBoundary()[i];
-    //         Eval(i, j) = Lxy(coordinates.first*dom.GetH(), coordinates.second*dom.GetH(), j, dom);
-    //     }
-    // }
+
+    uint thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (thread_index >= m*n)
+        return;
+
+    int i = thread_index / n;
+    int j = thread_index % n;
+
+    Eval[thread_index] = Lxy(posx_int[i], posy_int[i], posx_bound[j], posy_bound[j], dx[j], dy[j], k, dt);
 }
