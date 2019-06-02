@@ -16,15 +16,17 @@ as fast as that (i.e. to avoid comparing 'bad' GPU code)
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%OVERVIEW OF PROGRAM FLO AND ALGORITHMS%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%OVERVIEW OF PROGRAM FLOW AND ALGORITHMS%%%%%%%%%%%%%%%%
 
 There are several steps in this program
 -Read the input file (Reader.h)
--Generate a domain, specifically the boundary, from it. (Domain.h)
--Use this information to generate the coefficient matrix and the RHS of There
+-Generate a domain, specifically the boundary, from it. (Domain.h, Boundary.h)
+-Use this information to generate the coefficient matrix and the RHS as the
     discretized integral equation. Here I use techniqeus presented in Kress
     'Linear Integral Equations', section 12.3 (Solver.h)
 -Solve the system using Eigen library for the CPU demo. (SolverEigen.h)
+-OR: use the GPU (SolverGPU.h, SolverGPU.cuh). The switch is the macro '#undef USE_CUDA'
+    in line 16 in the main.cpp.
 -Write the result to the harddrive in CSV format.(Writer.h)
 -Visualize the result using e.g. Matlab. (Visualization.m)
 
@@ -68,6 +70,11 @@ Run either the default with
 ./CS179
 
 It takes a default domain (which I know works) and runs the solver on it.
+This requires that the executable is in <repo>/build and that the testdata is in
+<repo>/Testdata. 
+Other Testdata can be generated using the Matlab script in <repo>/Testdata. Don't
+forget to add the number of rows and columns to the first line in the result text file!
+(see below)
 
 
 Otherwise:
@@ -79,7 +86,8 @@ Otherwise:
 The input file is a text file with 0 and 1's in a matrix format. In the first line,
 there should be rows an columns of the domain. The boundary of the file need to be 0.
 The domain needs to be connected and with sufficient width everywhere. In addition, 
-the boundayr needs to be kinda simple, otherwise my algorithm to parametrize the boundary doesnt work. It will tell you when it can't find anything useful.
+the boundary needs to be kinda simple, otherwise my algorithm to parametrize the boundary doesnt work. 
+It will tell you when it can't find anything useful.
 
 Example file:
 5 5
@@ -89,12 +97,32 @@ Example file:
 0 0 1 0 0
 0 0 0 0 0
 
-I wrote a Matlab script which generates the 0s and 1s. The rows and colums need to be
-added manually.
+Testdata can be generated using the Matlab script in <repo>/Testdata. Don't
+forget to add the number of rows and columns to the first line in the result text file!
+(see below)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Setting the boundary condition%%%%%%%%%%%%%%%%%%%
 In main.cpp, there is a function 'bcdata'. This function defines the boundary condition.
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%KNOWN ISSUES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Generating the domain from a bitmap is a bit unstable. I tested it on circles of
+different size. It works fine there. I can't guarantee that this part of the algorithm
+works on arbitrary data.
+
+I did not manage to parallelize it using openACC. I just ran out of time there.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%POSSIBLE EXTENSIONS AND ENHANCEMENTS%%%%%%%%%%%%%%%%
+-Generalize the Reader to arbitrary data.
+-Build in default domains (default ctor for the domain class)
+-openACC
+-Switch the containers used in Domain.h to accomodate GPU code better.
+-Move Domain data to constant memory at the beginning of SolverGPU::Solve
+-More sophisticated Benchmarks and timing.
+-Different types of boundary data (Neumann, Robin)
+-Test code on different platforms.
 
 
