@@ -12,9 +12,8 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "helper_cuda.h"
-
-
-#define checkCudaErr
+#include <fstream>
+#include <iomanip>
 
 
 ///@brief solver class using cusolver as SoE solver.
@@ -28,18 +27,47 @@ public:
     virtual std::vector<double> Solve(const Domain& dom) const;
 
 protected:
-    ///@brief Function that sets up the voefficient Matrix A.
+    ///@brief Function that sets up the voefficient Matrix A!
     ///@param [inout] A. Assumes it is not allocated, allocates it.
-    void SetupA(const Domain& dom, cuDoubleComplex* A) const;
+    void SetupA(cuDoubleComplex** A, 
+        double *devx, 
+        double *devy,
+        double *devdx,
+        double *devdy,
+        double *devddx, 
+        double *devddy,
+        int n) const;
+
+    ///@brief Compute I-A
+    void ComputeIdmA(cuDoubleComplex* A, int n) const;
 
     ///@brief Function that sets up the RHS of the SoE.
     ///@param [inout] rhs: assumes rhs to not be allocated. allocates it in the function.
-    void SetupRhs(const Domain& dom, cuDoubleComplex* rhs) const;
+    void SetupRhs(const Domain& dom, cuDoubleComplex** rhs) const;
 
     ///@brief Setup the matrix necessary to evaluate the solution inside the domain.
-    void SetupEval(const Domain& dom, cuDoubleComplex* eval) const;
+    void SetupEval(const Domain& dom, cuDoubleComplex** Eval,
+        double* posx_bound,
+        double* posy_bound,
+        double* dx,
+        double* dy) const;
+
+    ///@brief Get the data from the boundary in array form and move them to the GPU
+    void SetupGPUData(const Domain& dom, 
+        double **devx, 
+        double **devy, 
+        double **devdx, 
+        double **devdy,
+        double **devddx, 
+        double **devddy) const;
 protected:
+    ///@brief small helper function that writes the real part of a matrix
+    ///A to the given ostream.
+    void Dump(std::ofstream& ofs, cuDoubleComplex* A, int m, int n) const;
     
+    ///@brief small helper function that writes a vector to the given ofstream
+    void Dump(std::ofstream& ofs, cuDoubleComplex* v, int n) const;
+
 };
 
 #endif /* USE_CUDA */

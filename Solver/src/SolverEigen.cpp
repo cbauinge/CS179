@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 
 using namespace std::complex_literals;
@@ -10,17 +11,48 @@ std::vector<double> SolverEigen::Solve(const Domain& dom) const
 {
     Matrix A = SetupA(dom);
     Matrix I = Matrix::Identity(A.rows(), A.cols());
-    //std::cout << "A = " << A << std::endl;
+    {
+        std::ofstream ofs;
+        ofs.open("HostMatrixTest.txt");
+        ofs << A << std::endl;
+        ofs.close();
+        
+    }
+    
     Vector b = SetupRhs(dom);
+    {
+        std::ofstream ofs;
+        ofs.open("HostRhsTest.txt");
+        ofs << b << std::endl;
+        ofs.close();
+    }
 
     //solve for density
     Eigen::ColPivHouseholderQR<Matrix> dec(I - A);
     Vector x = dec.solve(b);
     //std::cout << std::endl << "x = " << x << std::endl;
+    {
+        std::ofstream ofs;
+        ofs.open("HostImATest.txt");
+        ofs << I-A << std::endl;
+        ofs.close();
+    }
+
+    {
+        std::ofstream ofs;
+        ofs.open("HostDensityTest.txt");
+        ofs << x << std::endl;
+        ofs.close();
+    }
 
     //now, evaluate the result on all interior points. For that, setup the evaluation matrix
     Matrix Eval = SetupEval(dom);
-    //std::cout << "Eval = " << Eval << std::endl;
+    {
+        std::ofstream ofs;
+        ofs.open("HostMatrixEvalTest.txt");
+        ofs << Eval << std::endl;
+        ofs.close();
+    }
 
     //Evaluate the result in the inteiror (wo bounadary)
     Vector evaluation = Eval*x;

@@ -39,6 +39,9 @@ public:
     ///@brief Writes the domain to the given ostream in text format.
     std::ostream& Dump(std::ostream& ofs) const;
 
+    ///@brief function that generates arrays of x and y positions of the inteiror points wo boundary
+    void GetArrayDataInterior(double** x, double** y) const;
+
 
 private:
     ///Takes the points stored in points_ and extracts the interior points.
@@ -51,6 +54,8 @@ private:
     ///Generates the normals using the information stored in points_, interior_
     ///AND boundary_.
     std::vector<Vec2D> GenerateNormals() const;
+
+
     
 private:
     ///A vector of vectors of points describing the bitmap

@@ -30,6 +30,28 @@ std::ostream& Boundary::Dump(std::ostream& ofs) const
 }
 
 
+void Boundary::GetArrayData(double** x, double **y, double **dx, double **dy, double **ddx, double **ddy) const
+{
+    *x = (double*) malloc(size()*sizeof(double));
+    *y = (double*) malloc(size()*sizeof(double));
+    *dx = (double*) malloc(size()*sizeof(double));
+    *dy = (double*) malloc(size()*sizeof(double));
+    *ddx = (double*) malloc(size()*sizeof(double));
+    *ddy = (double*) malloc(size()*sizeof(double));
+
+    #pragma omp parallel for
+    for (int i = 0; i < size(); i++)
+    {
+        (*x)[i] = GetOrderedPoint(i).x;
+        (*y)[i] = GetOrderedPoint(i).y;
+        (*dx)[i] = GetOrderedPoint(i).D.x();
+        (*dy)[i] = GetOrderedPoint(i).D.y();
+        (*ddx)[i] = GetOrderedPoint(i).DD.x();
+        (*ddy)[i] = GetOrderedPoint(i).DD.y();
+    }
+}
+
+
 void Boundary::GeneratePoints(const std::vector<std::vector<bool> >& points, double h)
 {
     for (int i = 0; i < points.size(); i++)

@@ -68,8 +68,8 @@ public:
     /// NOTE this is bad design
     bool IsBoundary(int i, int j, const std::vector<std::vector<bool> >& points) const;
 
-
-
+    ///@brief function that writes the points in given arrays.
+    void GetArrayData(double** x, double **y, double **dx, double **dy, double **ddx, double **ddy) const;
 private:
     /// @brief Generates the boundary points (i, j, x, y) from the given bitmap and distance h.
     void GeneratePoints(const std::vector<std::vector<bool> >& points, double h);

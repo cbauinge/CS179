@@ -12,6 +12,7 @@
 #include "SolverEigen.h"
 
 #ifdef USE_CUDA
+    //#undef USE_CUDA
     #include "SolverGPU.h"
 #endif /*USE_CUDA*/
 
@@ -35,7 +36,7 @@ int main(int argc, char * argv [])
 
         //Get the domain from the file
         Reader r;
-        Domain dom = argc == 3 ? r.Read(argv[1]) : r.Read("/home/cbauinge/Documents/CS179/Testdata/test.txt");
+        Domain dom = argc == 3 ? r.Read(argv[1]) : r.Read("../Testdata/test.txt");
 
         //Generate bc according to the above function
         BoundaryDataGenerator bc_generator(bcdata);

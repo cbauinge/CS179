@@ -3,7 +3,7 @@ clc
 close all
 
 
-M = csvread('result.csv');
+M = csvread('build/result.csv');
 M = M';
 
 X = linspace(0, 1, size(M, 1));

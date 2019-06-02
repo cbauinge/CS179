@@ -66,22 +66,21 @@ std::ostream& Domain::Dump(std::ostream& ofs) const
         }
         ofs << std::endl;
     }
-
-    // ofs << std::endl;
-    // ofs << "Interior" << std::endl;
-
-    // for (int i = 0; i < interior_.size(); i++)
-    // {
-    //     ofs << interior_[i].first << ", " << interior_[i].second << std::endl;
-    // }
-
-    // ofs << std::endl;
-    // ofs << "Boundary positions" << std::endl;
-
-    // for (int i = 0; i < boundary_.size(); i++)
-    // {
-    //     ofs << boundary_[i].i << ", " << boundary_[i].j << std::endl;
-    // }
     
     return ofs;    
+}
+
+
+void Domain::GetArrayDataInterior(double** x, double** y) const
+{
+    int n = interior_without_boundary_.size();
+    *x = (double*) malloc(n*sizeof(double));
+    *y = (double*) malloc(n*sizeof(double));
+
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++)
+    {
+        (*x)[i] = interior_without_boundary_[i].first*h_;
+        (*y)[i] = interior_without_boundary_[i].second*h_;
+    }
 }

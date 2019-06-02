@@ -50,6 +50,8 @@ The standard I use is C++17 (since I require bessel functions from cmath which w
 
 The compiler I used is g++7 under Ubuntu 18.04.
 
+For the GPU version, it might be necessary to give the path to the CUDA headers to the PATH variable.
+
 
 *Building
 Go to the project to the project folder. Make a directory build. Go into the new build folder and run cmake from there. 
