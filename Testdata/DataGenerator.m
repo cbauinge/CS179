@@ -2,7 +2,7 @@ clear
 clc
 close all
 
-N = 100;
+N = 600;
 A = zeros(N, N);
 
 for i = 1:N
@@ -13,6 +13,6 @@ for i = 1:N
     end
 end
 
-dlmwrite('test.txt',A,'delimiter',' ','precision',1)
+dlmwrite('test.txt',A,'delimiter',' ','precision', 1)
 
     

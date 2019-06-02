@@ -14,50 +14,27 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
 {
     int m = dom.GetInteriorWOBoundary().size();
     int n = dom.GetBoundary().size();
+
+    //check the memory available and estimate the minimal memory requirement.
     size_t freemem, totalmem;
     checkCudaErrors(cudaMemGetInfo	(	&freemem, &totalmem));
-    std::cout << "Free mem (mb) = " << freemem/1024/1024 << " Total mem (mb)= " << totalmem/1024/1024 << std::endl;
-
+    std::cout << "Free memmory (mb) = " << freemem/1024/1024 << std::endl;
+    std::cout << "Total mem (mb) = " << totalmem/1024/1024 << std::endl;
     std::cout << "Minimum necesary memory (mb)= " << m*n*sizeof(cuDoubleComplex)/1024/1024 << std::endl;
 
-    double* devx, *devy, *devdx, *devdy, *devddx, *devddy; //data on dpu
+    //setup the boundary data on the gpu
+    double* devx, *devy, *devdx, *devdy, *devddx, *devddy; // boundary data on dpu
     SetupGPUData(dom, &devx, &devy, &devdx, &devdy, &devddx, &devddy);
 
+    //Setup A
     cuDoubleComplex* A;
     SetupA(&A, devx, devy, devdx, devdy, devddx, devddy, dom.GetBoundary().size());
-    {
-        std::ofstream ofs;
-        cuDoubleComplex* host_A = (cuDoubleComplex*) malloc(n*n*sizeof(cuDoubleComplex));
-        checkCudaErrors(cudaMemcpy(host_A, A, n*n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        ofs.open("TestMatrix.txt");
-        Dump(ofs, host_A, n, n);
-        ofs.close();
-        free(host_A);
-    }
+
     //I-A stored in A
     ComputeIdmA(A, n);
-    {
-        std::ofstream ofs;
-        cuDoubleComplex* host_A = (cuDoubleComplex*) malloc(n*n*sizeof(cuDoubleComplex));
-        checkCudaErrors(cudaMemcpy(host_A, A, n*n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        ofs.open("TestIdmAMatrix.txt");
-        Dump(ofs, host_A, n, n);
-        ofs.close();
-        free(host_A);
-    }
     
     cuDoubleComplex* b;
     SetupRhs(dom, &b);
-    {
-        std::ofstream ofs;
-        cuDoubleComplex* host_b = (cuDoubleComplex*) malloc(n*sizeof(cuDoubleComplex));
-        checkCudaErrors(cudaMemcpy(host_b, b, n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        ofs.open("TestRhs.txt");
-        Dump(ofs, host_b, n);
-        ofs.close();
-        free(host_b);
-    }
-
 
     //call cusolver
     int bufferSize = 0;
@@ -67,66 +44,35 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
     int lda = n;
     cusolverDnHandle_t handle;
     checkCudaErrors(cusolverDnCreate(&handle));
-    checkCudaErrors(cusolverDnZgetrf_bufferSize(handle, n, n, A, lda, &bufferSize));
+    checkCudaErrors(cusolverDnZgetrf_bufferSize(handle, n, n, A, lda, &bufferSize)); //Get buffer size
     checkCudaErrors(cudaMalloc(&info, sizeof(int)));
     checkCudaErrors(cudaMalloc(&buffer, sizeof(cuDoubleComplex)*bufferSize));
     //checkCudaErrors(cudaMalloc(&ipiv, sizeof(int)*n));
 
     //do the LU factorization
-    checkCudaErrors(cusolverDnZgetrf(handle, n, n, A, lda, buffer, ipiv, info));
-    {
-        int* host_info = (int*) malloc(sizeof(int));
-        checkCudaErrors(cudaMemcpy(host_info, info, sizeof(int), cudaMemcpyDeviceToHost));
-        if (*host_info != 0)
-            std::cout << "something we wrong when LU the SoE on the device" << std::endl;
-        free(host_info);
-    }
-
-    checkCudaErrors(cusolverDnZgetrs(handle, CUBLAS_OP_T, n, 1, A, lda, ipiv, b, n, info));
+    checkCudaErrors(cusolverDnZgetrf(handle, n, n, A, lda, buffer, ipiv, info)); //LU factorization
     checkCudaErrors(cudaDeviceSynchronize());
-    {
-        int* host_info = (int*) malloc(sizeof(int));
-        checkCudaErrors(cudaMemcpy(host_info, info, sizeof(int), cudaMemcpyDeviceToHost));
-        if (*host_info != 0)
-            std::cout << "something we wrong when solving the SoE on the device" << std::endl;
-        free(host_info);
-    }
+    CheckInfo(info);
 
+    checkCudaErrors(cusolverDnZgetrs(handle, CUBLAS_OP_T, n, 1, A, lda, ipiv, b, n, info)); //T because the format is a row major but col major is necessary
+    checkCudaErrors(cudaDeviceSynchronize());
+    CheckInfo(info);
+
+    //destroy and free stuff necessary for solver
     checkCudaErrors(cusolverDnDestroy(handle));
     checkCudaErrors(cudaFree(ipiv));
     checkCudaErrors(cudaFree(buffer));
     checkCudaErrors(cudaFree(info));
     checkCudaErrors(cudaFree(A));
 
-    {
-        cuDoubleComplex* host_b = (cuDoubleComplex*) malloc(n*sizeof(cuDoubleComplex));
-        checkCudaErrors(cudaMemcpy(host_b, b, n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        std::ofstream ofs;
-        ofs.open("DensityTest.txt");
-        Dump(ofs, host_b, n);
-        ofs.close();
-        std::cout << "Dumped density device" << std::endl;
-        free(host_b);
-    }
-
     //evaluate result on every interior point
     cuDoubleComplex* Eval;
     SetupEval(dom, &Eval, devx, devy, devdx, devdy);
     checkCudaErrors(cudaDeviceSynchronize());
 
-    cuDoubleComplex* hostEval = (cuDoubleComplex*) malloc(m*n*sizeof(cuDoubleComplex));
-    checkCudaErrors(cudaMemcpy(hostEval, Eval, m*n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-    {
-        std::ofstream ofs;
-        ofs.open("TestEvalMatrix.txt");
-        Dump(ofs, hostEval, m, n);
-        ofs.close();
-    }
-
     //call cusolver to multiply eval*the result from the cusolver call;
     cublasHandle_t cublashandle;
     checkCudaErrors(cublasCreate(&cublashandle));
-
     cuDoubleComplex one = make_cuDoubleComplex(1.0, 0.0);
     cuDoubleComplex zero = make_cuDoubleComplex(0.0, 0.0);
     cuDoubleComplex* doutput;
@@ -140,6 +86,7 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
         &zero,
         doutput, 1));
 
+    //destroy and free stuff necessary for evaluation
     checkCudaErrors(cublasDestroy(cublashandle));
     checkCudaErrors(cudaFree(Eval));
     checkCudaErrors(cudaFree(b));
@@ -150,6 +97,7 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
     checkCudaErrors(cudaMemcpy(output,doutput, m*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
     checkCudaErrors(cudaFree(doutput));
 
+    //NOTE: this could be performed on the GPU
     std::vector<double> result(m);
     #pragma omp parallel for
     for (int k = 0; k < m; k++)
@@ -157,6 +105,7 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
         result[k] = cuCreal(output[k]);
     }
 
+    //free memory
     free(output);
     checkCudaErrors(cudaFree(devx));
     checkCudaErrors(cudaFree(devy));
@@ -309,4 +258,14 @@ void SolverGPU::Dump(std::ofstream& ofs, cuDoubleComplex* v, int n) const
     {
         ofs << "(" << cuCreal(v[i]) << "," << cuCimag(v[i]) << ")" << std::endl;
     }
+}
+
+
+void SolverGPU::CheckInfo(int *dinfo) const
+{
+    int* host_info = (int*) malloc(sizeof(int));
+    checkCudaErrors(cudaMemcpy(host_info, dinfo, sizeof(int), cudaMemcpyDeviceToHost));
+    if (*host_info != 0)
+        std::cout << "Sth went wrong, info = " << *host_info << std::endl;
+    free(host_info);
 }

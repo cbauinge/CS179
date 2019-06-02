@@ -68,6 +68,10 @@ protected:
     ///@brief small helper function that writes a vector to the given ofstream
     void Dump(std::ofstream& ofs, cuDoubleComplex* v, int n) const;
 
+    ///@brief helper function tht checks the cusolver info and outputs problems
+    ///@param [in] dinfo device info
+    void CheckInfo(int *dinfo) const;
+
 };
 
 #endif /* USE_CUDA */

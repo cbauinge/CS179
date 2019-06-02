@@ -3,6 +3,7 @@
 #include <exception>
 #include <string>
 #include <iostream>
+#include <chrono>
 
 #include "Domain.h"
 #include "BoundaryDataGenerator.h"
@@ -51,7 +52,10 @@ int main(int argc, char * argv [])
         
         solver->SetWaveNumber(k);
         solver->SetBoundaryCondition(bc);
+        auto start = std::chrono::high_resolution_clock::now();
         std::vector<double> result = solver->Solve(dom);
+        auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start);
+        std::cout << "Solver took " << diff.count() << " seconds." << std::endl;
         delete solver;
 
         //Write the result to the harddrive

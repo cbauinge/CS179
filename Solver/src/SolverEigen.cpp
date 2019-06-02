@@ -9,50 +9,21 @@ using namespace std::complex_literals;
 
 std::vector<double> SolverEigen::Solve(const Domain& dom) const
 {
+    std::cout << "Eigen Solver ..." << std::endl;
     Matrix A = SetupA(dom);
-    Matrix I = Matrix::Identity(A.rows(), A.cols());
-    {
-        std::ofstream ofs;
-        ofs.open("HostMatrixTest.txt");
-        ofs << A << std::endl;
-        ofs.close();
-        
-    }
-    
+    std::cout << "Finished Setting up A" << std::endl;
+    Matrix I = Matrix::Identity(A.rows(), A.cols());    
     Vector b = SetupRhs(dom);
-    {
-        std::ofstream ofs;
-        ofs.open("HostRhsTest.txt");
-        ofs << b << std::endl;
-        ofs.close();
-    }
+    std::cout << "Finished Setting up b" << std::endl;
 
     //solve for density
     Eigen::ColPivHouseholderQR<Matrix> dec(I - A);
     Vector x = dec.solve(b);
-    //std::cout << std::endl << "x = " << x << std::endl;
-    {
-        std::ofstream ofs;
-        ofs.open("HostImATest.txt");
-        ofs << I-A << std::endl;
-        ofs.close();
-    }
-
-    {
-        std::ofstream ofs;
-        ofs.open("HostDensityTest.txt");
-        ofs << x << std::endl;
-        ofs.close();
-    }
+    std::cout << "Finished solving (I-A)x = b" << std::endl;
 
     //now, evaluate the result on all interior points. For that, setup the evaluation matrix
     Matrix Eval = SetupEval(dom);
-    {
-        std::ofstream ofs;
-        ofs.open("HostMatrixEvalTest.txt");
-        ofs << Eval << std::endl;
-        ofs.close();
-    }
+    std::cout << "Finished Setting up Eval" << std::endl;
 
     //Evaluate the result in the inteiror (wo bounadary)
     Vector evaluation = Eval*x;
@@ -60,10 +31,13 @@ std::vector<double> SolverEigen::Solve(const Domain& dom) const
     
     std::vector<double> result;
     result.resize(evaluation.size());
+    #pragma omp parallel for
     for (int i = 0; i < result.size(); i++)
     {
         result[i] = evaluation(i).real();
     }
+
+    std::cout << "...Finished Eigen Solver" << std::endl;
 
     return result;
 }
@@ -74,9 +48,9 @@ Matrix SolverEigen::SetupA(const Domain& dom) const
     int n = dom.GetBoundary().size();
     Matrix A(n, n);
     double dt = 2.0*M_PI/n;
-    int fn = floor(n/2);
+    const int fn = floor(n/2);
 
-
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -95,6 +69,7 @@ Vector SolverEigen::SetupRhs(const Domain& dom) const
     int n = dom.GetBoundary().size();
     Vector b(n);
 
+    #pragma omp parallel for
     for (int i = 0; i < n; i++)
     {
         b(i) = -2.0*bc_[i];
@@ -108,6 +83,7 @@ Matrix SolverEigen::SetupEval(const Domain& dom) const
 {
     Matrix Eval(dom.GetInteriorWOBoundary().size(), dom.GetBoundary().size());
     
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < Eval.rows(); i++)
     {
         for (int j = 0; j < Eval.cols(); j++)
@@ -119,32 +95,6 @@ Matrix SolverEigen::SetupEval(const Domain& dom) const
 
     return Eval;
 }
-    
-
-// Matrix SolverEigen::SetupR(const Domain& dom) const
-// {
-//     int n = dom.GetBoundary().size();
-//     Matrix R(n, n);
-
-//     int fn = std::floor(n/2);
-
-//     //double dt = 2*PI/n;
-
-//     for (int i = 0; i < n; i++)
-//     {
-//         for (int j = 0; j < n; j++)
-//         {
-//             R(i, j) = 0.0;
-//             for (int k = 1; k < fn; k++)
-//             {
-//                 R(i, j) += 1.0/k*cos(k*i*M_PI/double(fn)) + std::pow(-1.0, i)/(2.0*fn);
-//             }
-//             R(i, j) /= -fn;
-//         }
-//     }
-
-//     return R;    
-// }
 
 double SolverEigen::ComputeR(double tj, double t, int n) const
 {
@@ -160,8 +110,6 @@ double SolverEigen::ComputeR(double tj, double t, int n) const
 
 complex SolverEigen::K(int i, int j, const Domain& dom) const
 {
-    //double dt = 2.0*M_PI/dom.GetBoundary().size();
-
     complex val = 0.0;
 
     if (abs(i-j) < 0.5)

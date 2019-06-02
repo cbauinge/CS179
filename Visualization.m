@@ -13,5 +13,6 @@ Y = linspace(0, 1, size(M, 1));
 
 figure
 surf(Xg, Yg, M);
+shading interp
 xlabel('x')
 ylabel('y')
