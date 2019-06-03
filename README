@@ -67,7 +67,7 @@ make
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RUNNING THE CODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Run either the default with 
 
-./CS179
+$ ./CS179
 
 It takes a default domain (which I know works) and runs the solver on it.
 This requires that the executable is in <repo>/build and that the testdata is in
@@ -79,7 +79,18 @@ forget to add the number of rows and columns to the first line in the result tex
 
 Otherwise:
 
-./CS179 <Path to input file> <wave_number>
+$ ./CS179 <Path to input file> <wave_number>
+
+
+
+For testing, run 
+
+$ make IntegrationTest
+
+It will run the CPU and GPU code on 5 examples of different size and write the
+run times to the console. An example of how the result should look like is given
+in Testdata/Example_output.png.
+The results can be visualized using the Visualization.m Matlab code.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%INPUT FILE FORMAT%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -112,7 +123,7 @@ Generating the domain from a bitmap is a bit unstable. I tested it on circles of
 different size. It works fine there. I can't guarantee that this part of the algorithm
 works on arbitrary data.
 
-I did not manage to parallelize it using openACC. I just ran out of time there.
+I did not manage to parallelize it using openACC. I just ran out of time for this.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%POSSIBLE EXTENSIONS AND ENHANCEMENTS%%%%%%%%%%%%%%%%
@@ -124,5 +135,6 @@ I did not manage to parallelize it using openACC. I just ran out of time there.
 -More sophisticated Benchmarks and timing.
 -Different types of boundary data (Neumann, Robin)
 -Test code on different platforms.
+-Error handling in case the code runs out of memory.
 
 

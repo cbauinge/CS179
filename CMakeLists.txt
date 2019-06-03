@@ -43,3 +43,7 @@ add_subdirectory(Writer)
 
 add_executable(CS179 main.cpp)
 target_link_libraries(CS179 Domain Reader Solver Writer)
+
+add_executable(Test Testframe.cpp)
+target_link_libraries(Test Domain Reader Solver Writer)
+add_custom_target(IntegrationTest Test)

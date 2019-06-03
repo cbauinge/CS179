@@ -37,7 +37,7 @@ int main(int argc, char * argv [])
 
         //Get the domain from the file
         Reader r;
-        Domain dom = argc == 3 ? r.Read(argv[1]) : r.Read("../Testdata/test.txt");
+        Domain dom = argc == 3 ? r.Read(argv[1]) : r.Read("../Testdata/test1.txt");
 
         //Generate bc according to the above function
         BoundaryDataGenerator bc_generator(bcdata);

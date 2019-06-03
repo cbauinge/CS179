@@ -3,7 +3,7 @@ clc
 close all
 
 
-M = csvread('build/result.csv');
+M = csvread('build/result_CPU_5.csv');
 M = M';
 
 X = linspace(0, 1, size(M, 1));

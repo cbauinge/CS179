@@ -9,21 +9,20 @@ using namespace std::complex_literals;
 
 std::vector<double> SolverEigen::Solve(const Domain& dom) const
 {
-    std::cout << "Eigen Solver ..." << std::endl;
     Matrix A = SetupA(dom);
-    std::cout << "Finished Setting up A" << std::endl;
+    std::cout << "\tFinished Setting up A" << std::endl;
     Matrix I = Matrix::Identity(A.rows(), A.cols());    
     Vector b = SetupRhs(dom);
-    std::cout << "Finished Setting up b" << std::endl;
+    std::cout << "\tFinished Setting up b" << std::endl;
 
     //solve for density
     Eigen::ColPivHouseholderQR<Matrix> dec(I - A);
     Vector x = dec.solve(b);
-    std::cout << "Finished solving (I-A)x = b" << std::endl;
+    std::cout << "\tFinished solving (I-A)x = b" << std::endl;
 
     //now, evaluate the result on all interior points. For that, setup the evaluation matrix
     Matrix Eval = SetupEval(dom);
-    std::cout << "Finished Setting up Eval" << std::endl;
+    std::cout << "\tFinished Setting up Eval" << std::endl;
 
     //Evaluate the result in the inteiror (wo bounadary)
     Vector evaluation = Eval*x;
@@ -36,8 +35,6 @@ std::vector<double> SolverEigen::Solve(const Domain& dom) const
     {
         result[i] = evaluation(i).real();
     }
-
-    std::cout << "...Finished Eigen Solver" << std::endl;
 
     return result;
 }

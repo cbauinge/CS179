@@ -18,9 +18,9 @@ std::vector<double> SolverGPU::Solve(const Domain& dom) const
     //check the memory available and estimate the minimal memory requirement.
     size_t freemem, totalmem;
     checkCudaErrors(cudaMemGetInfo	(	&freemem, &totalmem));
-    std::cout << "Free memmory (mb) = " << freemem/1024/1024 << std::endl;
-    std::cout << "Total mem (mb) = " << totalmem/1024/1024 << std::endl;
-    std::cout << "Minimum necesary memory (mb)= " << m*n*sizeof(cuDoubleComplex)/1024/1024 << std::endl;
+    std::cout << "\tFree memmory (mb) = " << freemem/1024/1024 << std::endl;
+    std::cout << "\tTotal mem (mb) = " << totalmem/1024/1024 << std::endl;
+    std::cout << "\tMinimum necesary memory (mb)= " << m*n*sizeof(cuDoubleComplex)/1024/1024 << std::endl;
 
     //setup the boundary data on the gpu
     double* devx, *devy, *devdx, *devdy, *devddx, *devddy; // boundary data on dpu

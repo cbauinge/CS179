@@ -2,7 +2,7 @@ clear
 clc
 close all
 
-N = 600;
+N = 40;
 A = zeros(N, N);
 
 for i = 1:N
